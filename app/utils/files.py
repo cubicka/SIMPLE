@@ -90,6 +90,12 @@ def load_all_models(env):
         models.append(load_model(env, name = model_name))
     return models
 
+def load_all_model_names(env):
+    modellist = [f for f in os.listdir(os.path.join(config.MODELDIR, env.name)) if f.startswith("_model")]
+    modellist.sort()
+    x = ["base"]
+    x.extend(modellist)
+    return x
 
 def get_best_model_name(env_name):
     modellist = [f for f in os.listdir(os.path.join(config.MODELDIR, env_name)) if f.startswith("_model")]

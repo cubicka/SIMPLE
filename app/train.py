@@ -93,7 +93,7 @@ def main(args):
     'eval_freq' : args.eval_freq,
     'n_eval_episodes' : args.n_eval_episodes,
     'deterministic' : False,
-    'render' : True,
+    'render' : False,
     'verbose' : 0
   }
 
@@ -153,7 +153,7 @@ def cli() -> None:
             , help="How many episodes should each actor contirbute to the evaluation of the agent")
   parser.add_argument("--threshold", "-t",  type = float, default = 0.2
             , help="What score must the agent achieve during evaluation to 'beat' the previous version?")
-  parser.add_argument("--gamma", "-g",  type = float, default = 0.99
+  parser.add_argument("--gamma", "-g",  type = float, default = 1
             , help="The value of gamma in PPO")
   parser.add_argument("--timesteps_per_actorbatch", "-tpa",  type = int, default = 1024
             , help="How many timesteps should each actor contribute to the batch?")

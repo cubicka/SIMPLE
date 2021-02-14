@@ -15,7 +15,11 @@ def sample_action(action_probs):
 
 def mask_actions(legal_actions, action_probs):
     masked_action_probs = np.multiply(legal_actions, action_probs)
-    masked_action_probs = masked_action_probs / np.sum(masked_action_probs)
+    actionProbSum = np.sum(masked_action_probs)
+    if actionProbSum > 0:
+      masked_action_probs = masked_action_probs / np.sum(masked_action_probs)
+    else:
+      masked_action_probs = legal_actions / np.sum(legal_actions)
     return masked_action_probs
 
 
@@ -29,35 +33,36 @@ class Agent():
       self.model = model
       self.points = 0
 
-  def print_top_actions(self, action_probs):
+  def print_top_actions(self, action_probs, printer=None):
+    if printer is None:
+      printer = logger.debug
     top5_action_idx = np.argsort(-action_probs)[:5]
     top5_actions = action_probs[top5_action_idx]
-    logger.debug(f"Top 5 actions: {[str(i) + ': ' + str(round(a,2))[:5] for i,a in zip(top5_action_idx, top5_actions)]}")
+    printer(f"Top 5 actions: {[str(i) + ': ' + str(round(a,2))[:5] for i,a in zip(top5_action_idx, top5_actions)]}")
 
-  def choose_action(self, env, choose_best_action, mask_invalid_actions):
+  def choose_action(self, env, choose_best_action, mask_invalid_actions, printer=None):
+      if printer is None:
+        printer = logger.debug
       if self.name == 'rules':
         action_probs = np.array(env.rules_move())
         value = None
       else:
         action_probs = self.model.action_probability(env.observation)
         value = self.model.policy_pi.value(np.array([env.observation]))[0]
-        logger.debug(f'Value {value:.2f}')
+        printer(f'Value {value:.2f}')
 
-      self.print_top_actions(action_probs)
+      # self.print_top_actions(action_probs)
       
       if mask_invalid_actions:
         action_probs = mask_actions(env.legal_actions, action_probs)
-        logger.debug('Masked ->')
-        self.print_top_actions(action_probs)
-        
-      action = np.argmax(action_probs)
-      logger.debug(f'Best action {action}')
+        # logger.debug('Masked ->')
+        self.print_top_actions(action_probs, printer)
 
       if not choose_best_action:
           action = sample_action(action_probs)
-          logger.debug(f'Sampled action {action} chosen')
+          printer(f'Sampled action {action} chosen')
+      else:
+          action = np.argmax(action_probs)
+          printer(f'Best action {action}')
 
       return action
-
-
-

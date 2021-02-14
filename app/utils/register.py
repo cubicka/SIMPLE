@@ -8,6 +8,9 @@ def get_environment(env_name):
         elif env_name in ('connect4'):
             from connect4.envs.connect4 import Connect4Env
             return Connect4Env
+        elif env_name in ('sushi'):
+            from sushi.envs import SushiEnv
+            return SushiEnv
         elif env_name in ('sushigo'):
             from sushigo.envs.sushigo import SushiGoEnv
             return SushiGoEnv
@@ -30,6 +33,9 @@ def get_network_arch(env_name):
         return CustomPolicy
     elif env_name in ('connect4'):
         from models.connect4.models import CustomPolicy
+        return CustomPolicy
+    elif env_name in ('sushi'):
+        from models.sushi.models import CustomPolicy
         return CustomPolicy
     elif env_name in ('sushigo'):
         from models.sushigo.models import CustomPolicy

@@ -12,7 +12,7 @@ import argparse
 
 from stable_baselines import logger
 
-from utils.files import load_model, write_results
+from utils.files import load_all_model_names, load_all_models, load_model, write_results
 from utils.register import get_environment
 from utils.agents import Agent
 
@@ -40,7 +40,9 @@ def main(args):
   #load the agents
   if len(args.agents) != env.n_players:
     raise Exception(f'{len(args.agents)} players specified but this is a {env.n_players} player game!')
-
+  
+  all_models = load_all_models(env)
+  all_names = load_all_model_names(env)
   for i, agent in enumerate(args.agents):
     if agent == 'human':
       agent_obj = Agent('human')
@@ -49,6 +51,9 @@ def main(args):
     elif agent == 'base':
       base_model = load_model(env, 'base.zip')
       agent_obj = Agent('base', base_model)   
+    elif agent == 'top':
+      id = max(0, len(all_models)-1-i)
+      agent_obj = Agent(all_names[id], all_models[id])
     else:
       ppo_model = load_model(env, f'{agent}.zip')
       ppo_agent = i
@@ -70,6 +75,7 @@ def main(args):
     for i, p in enumerate(players):
       logger.debug(f'Player {i+1} = {p.name}')
 
+    actionBanks = []
     while not done:
 
       current_player = players[env.current_player_num]
@@ -82,6 +88,8 @@ def main(args):
         action = agents[ppo_agent].choose_action(env, choose_best_action = True, mask_invalid_actions = True)
 
       if current_player.name == 'human':
+        logger.debug('\nPrev actions', actionBanks)
+        logger.debug('\nAvailable actions', env.game.legalActions())
         action = input('\nPlease choose an action: ')
         try:
           # for int actions
@@ -96,7 +104,13 @@ def main(args):
         logger.debug(f'\n{current_player.name} model choices')
         action = current_player.choose_action(env, choose_best_action = args.best, mask_invalid_actions = True)
 
+      # logger.debug()
+      # for player in agents[:3]:
+      #   logger.debug(f'\nConsideration of {player.name}')
+      #   _a = player.choose_action(env, choose_best_action = args.best, mask_invalid_actions = True)
+
       obs, reward, done, _ = env.step(action)
+      actionBanks.append(action)
 
       for r, player in zip(reward, players):
         total_rewards[player.id] += r
